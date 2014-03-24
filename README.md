@@ -1,4 +1,4 @@
-# bmap tests
+# Bitmap intersections with AVX instructions.
 
 Tests to see the efficiency of various approaches to performing intersection and union operations on large bitmaps.
 
