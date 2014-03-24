@@ -32,4 +32,6 @@ int bmap_inter64_avx_a_count(struct bmap *r, struct bmap *s);
 int bmap_inter64_avx_a_postcount(struct bmap *r, struct bmap *s);
 int bmap_inter64_avx_a_count_r(struct bmap * restrict r, struct bmap * restrict s);
 int bmap_inter64_avx_a_postcount_r(struct bmap * restrict r, struct bmap * restrict s);
+int bmap_inter64_avx_a_postavxcount_r(struct bmap * restrict r, struct bmap * restrict s);
+
 #endif
