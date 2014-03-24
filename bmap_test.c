@@ -35,6 +35,11 @@ struct {
 	{ bmap_inter64_postcount_r, "inter64_postcount_r" },
 #ifdef __AVX__
 	{ bmap_inter64_avx_u_count, "inter64_avx_u_count" },
+	{ bmap_inter64_avx_u_count_latestore, "inter64_avx_u_count_latestore" },
+	{ bmap_inter64_avx_u_count_laterstore, "inter64_avx_u_count_laterstore" },
+	{ bmap_inter64_avx_u_count_laterstore_unroll2, "inter64_avx_u_count_laterstore_unroll2" },
+	{ bmap_inter64_avx_u_count_laterstore_unroll4, "inter64_avx_u_count_laterstore_unroll4" },
+	{ bmap_inter64_avx_u_count_laterstore_unroll8, "inter64_avx_u_count_laterstore_unroll8" },
 	{ bmap_inter64_avx_u_postcount, "inter64_avx_u_postcount" },
 	{ bmap_inter64_avx_a_count, "inter64_avx_a_count" },
 	{ bmap_inter64_avx_a_postcount, "inter64_avx_a_postcount" },

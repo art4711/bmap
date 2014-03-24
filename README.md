@@ -307,9 +307,40 @@ And with gcc (on a different cpu):
 
 This is somewhere between nothing and weird. I think I'll trust the gcc numbers better since it's a newer cpu and a more quiet machine.
 
+After carefully reading the code I realized this is all a lie anyway. clang doesn't generate the `vandpd` instruction at all. So this just tested the noise in the data which seems to be substantial. Why the different instructions exist still remains a mystery.
+
+## Store operation order. `bmap_inter64_avx_u_count_latestore` and `bmap_inter64_avx_u_count_laterstore`
+
+It doesn't really matter when the store operation is done. But I suspect the compiler doesn't know this since the 
+
+    x statdir/inter64_avx_u_count
+    + statdir/inter64_avx_u_count_latestore
+        N           Min           Max        Median           Avg        Stddev
+    x 100      0.587438      0.637769       0.61464    0.61365458   0.013855743
+    + 100      0.587281      0.661827      0.619152    0.61746418   0.014813431
+    No difference proven at 95.0% confidence
+
+But:
+
+    x statdir/inter64_avx_u_count
+    + statdir/inter64_avx_u_count_laterstore
+        N           Min           Max        Median           Avg        Stddev
+    x 100      0.587438      0.637769       0.61464    0.61365458   0.013855743
+    + 100      0.578534      0.637223      0.605792    0.60563392   0.012322762
+    Difference at 95.0% confidence
+	-0.00802066 +/- 0.00363437
+	-1.30703% +/- 0.59225%
+	(Student's t, pooled s = 0.0131117)
+
+Maybe this is faster? Maybe it's just noise.
+
+### -funroll-loops `inter64_avx_u_count_laterstore_unroll2` and `inter64_avx_u_count_laterstore_unroll4` and `inter64_avx_u_count_laterstore_unroll8`
+
+No. Even if this is faster the code is beyond fugly. I have the numbers, they are insignificant. Just don't.
+
 ## Conclusion
 
-`bmap_avx_u_count` is proabably the best function to use in this very specific use case unless we can really guarantee that the data is aligned, then `bmap_avx_a_count` might be better.
+`bmap_avx_u_count_laterstore` is proabably the best function to use in this very specific use case unless we can really guarantee that the data is aligned, then `bmap_avx_a_count` might be better.
 
 On the other hand, vectorizing this makes the code unreadable and the vectorized code is not that much faster than the trivial code, so for the sake of the sanity of whoever needs to read the code in the future we might as well use the readable code and hope that the compiler can do something clever in some later version.
 

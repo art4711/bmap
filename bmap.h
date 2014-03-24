@@ -27,6 +27,11 @@ int bmap_inter64_count_r(struct bmap * __restrict r, struct bmap * __restrict s)
 int bmap_inter64_postcount_r(struct bmap * __restrict r, struct bmap * __restrict s);
 #ifdef __AVX__
 int bmap_inter64_avx_u_count(struct bmap *r, struct bmap *s);
+int bmap_inter64_avx_u_count_latestore(struct bmap *r, struct bmap *s);
+int bmap_inter64_avx_u_count_laterstore(struct bmap *r, struct bmap *s);
+int bmap_inter64_avx_u_count_laterstore_unroll2(struct bmap *r, struct bmap *s);
+int bmap_inter64_avx_u_count_laterstore_unroll4(struct bmap *r, struct bmap *s);
+int bmap_inter64_avx_u_count_laterstore_unroll8(struct bmap *r, struct bmap *s);
 int bmap_inter64_avx_u_postcount(struct bmap *r, struct bmap *s);
 int bmap_inter64_avx_a_count(struct bmap *r, struct bmap *s);
 int bmap_inter64_avx_a_postcount(struct bmap *r, struct bmap *s);
