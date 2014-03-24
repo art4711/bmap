@@ -310,3 +310,5 @@ This is somewhere between nothing and weird. I think I'll trust the gcc numbers 
 ## Conclusion
 
 `bmap_avx_u_count` is proabably the best function to use in this very specific use case unless we can really guarantee that the data is aligned, then `bmap_avx_a_count` might be better.
+
+On the other hand, vectorizing this makes the code unreadable and the vectorized code is not that much faster than the trivial code, so for the sake of the sanity of whoever needs to read the code in the future we might as well use the readable code and hope that the compiler can do something clever in some later version.
