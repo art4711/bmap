@@ -15,7 +15,9 @@ SRCS=$(SRCS.$(OSNAME)) bmap.c bmap_test.c
 
 OBJS=$(SRCS:.c=.o)
 
-CFLAGS=-I$(STOPWATCHPATH) -O3 -msse4.2 -mpopcnt -mavx -Wall -Werror
+#MACHFLAGS= -msse4.2 -mpopcnt -mavx 
+MACHFLAGS=-mpopcnt
+CFLAGS=-I$(STOPWATCHPATH) -O3 -Wall -Werror $(MACHFLAGS)
 
 .PHONY: run clean genstats cmp_stats
 
@@ -25,7 +27,7 @@ run:: bmap
 genstats:: bmap
 	./bmap statdir
 
-REF_STAT=inter64_count
+REF_STAT=inter64_postcount
 
 cmp_stats::
 	for a in statdir/* ; do printf "$$a -> " ; $(MINISTAT) -q statdir/$(REF_STAT) $$a | tail -2 | head -1 | awk '{ print $1 }' ; done
