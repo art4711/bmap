@@ -1,6 +1,6 @@
 # Bitmap intersections with AVX instructions.
 
-Tests to see the efficiency of various approaches to performing intersection and union operations on large bitmaps.
+Tests to see the efficiency of various approaches to performing intersection operations on large bitmaps.
 
 ## The data
 
@@ -263,7 +263,7 @@ Let's test this:
 	-2.90141% +/- 0.820893%
 	(Student's t, pooled s = 0.0328962)
 
-And with gcc (one a different cpu):
+And with gcc (on a different cpu):
 
     x statdir/inter64_avx_u_count
     + statdir/inter64_avx_u_count_ps
@@ -313,7 +313,8 @@ This is somewhere between nothing and weird. I think I'll trust the gcc numbers 
 
 On the other hand, vectorizing this makes the code unreadable and the vectorized code is not that much faster than the trivial code, so for the sake of the sanity of whoever needs to read the code in the future we might as well use the readable code and hope that the compiler can do something clever in some later version.
 
-## Reference
+## References
 
-http://software.intel.com/sites/landingpage/IntrinsicsGuide/
-http://www.freebsd.org/cgi/man.cgi?ministat
+* http://software.intel.com/sites/landingpage/IntrinsicsGuide/
+
+* http://www.freebsd.org/cgi/man.cgi?ministat
