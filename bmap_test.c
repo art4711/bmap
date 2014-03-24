@@ -45,9 +45,10 @@ int
 main(int argc, char **argv)
 {
 	struct stopwatch sw;
-	const int nbmaps = 65536;
+	const int nbmaps = 8192;
+	int nrep = 80;
 	struct bmap *bmaps[nbmaps];
-	int nrep = 40;
+	int expect[nbmaps];
 	int rep;
 	int i,t;
 
@@ -59,12 +60,21 @@ main(int argc, char **argv)
 	stopwatch_stop(&sw);
 	printf("alloc: %f\n", stopwatch_to_ns(&sw) / 1000000000.0);
 
+	for (i = 0; i < nbmaps; i += 2) {
+		expect[i] = bmap_inter64_postcount(bmaps[i], bmaps[i + 1]);
+	}
+
 	for (t = 0; t < sizeof(tests) / sizeof(tests[0]); t++) {
 		stopwatch_reset(&sw);
 		stopwatch_start(&sw);
-		for (rep = 0; rep < nrep; rep++)
-			for (i = 0; i < nbmaps; i+= 2)
-				(*tests[t].t)(bmaps[i], bmaps[i + 1]);
+		for (rep = 0; rep < nrep; rep++) {
+			for (i = 0; i < nbmaps; i+= 2) {
+				int ret = (*tests[t].t)(bmaps[i], bmaps[i + 1]);
+				if (ret != expect[i]) {
+					printf("test '%s' returns %d != %d\n", tests[t].n, ret, expect[i]);
+				}
+			}
+		}
 		stopwatch_stop(&sw);
 		printf("%s: %f\n", tests[t].n, stopwatch_to_ns(&sw) / 1000000000.0);
 	}
