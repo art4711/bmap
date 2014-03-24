@@ -1,7 +1,7 @@
-# This is from github.com/art4711/stopwatch.
 OSNAME ?= $(shell uname -s)
 OSNAME := $(shell echo $(OSNAME) | tr A-Z a-z)
 
+# Get this from github.com/art4711/stopwatch.
 STOPWATCHPATH=../timing
 SRCS.linux=$(STOPWATCHPATH)/stopwatch_linux.c
 SRCS.darwin=$(STOPWATCHPATH)/stopwatch_mach.c
@@ -15,8 +15,8 @@ SRCS=$(SRCS.$(OSNAME)) bmap.c bmap_test.c
 
 OBJS=$(SRCS:.c=.o)
 
-#MACHFLAGS= -msse4.2 -mpopcnt -mavx 
-MACHFLAGS=-mpopcnt
+MACHFLAGS= -msse4.2 -mpopcnt -mavx 
+#MACHFLAGS=-mpopcnt
 CFLAGS=-I$(STOPWATCHPATH) -O3 -Wall -Werror $(MACHFLAGS)
 
 .PHONY: run clean genstats cmp_stats
