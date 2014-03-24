@@ -1,8 +1,12 @@
 # This is from github.com/art4711/stopwatch.
-STOPWATCHPATH=../timing
-SRCS=$(STOPWATCHPATH)/stopwatch_mach.c
+OSNAME ?= $(shell uname -s)
+OSNAME := $(shell echo $(OSNAME) | tr A-Z a-z)
 
-SRCS+=bmap.c bmap_test.c
+STOPWATCHPATH=../timing
+SRCS.linux=$(STOPWATCHPATH)/stopwatch_linux.c
+SRCS.darwin=$(STOPWATCHPATH)/stopwatch_mach.c
+
+SRCS=$(SRCS.$(OSNAME)) bmap.c bmap_test.c
 
 OBJS=$(SRCS:.c=.o)
 
@@ -19,4 +23,4 @@ clean::
 $(OBJS): bmap.h
 
 bmap: $(OBJS)
-	cc -Wall -Werror -o bmap -O2 -I$(STOPWATCHPATH) $(OBJS)
+	cc -Wall -Werror -o bmap -O2 -I$(STOPWATCHPATH) $(OBJS) -lrt

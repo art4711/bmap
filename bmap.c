@@ -50,7 +50,7 @@ bmap_alloc_rnd(void)
 }
 
 static inline int
-bmap_count_internal(struct bmap * restrict b)
+bmap_count_internal(struct bmap * __restrict b)
 {
 	uint64_t *d = b->bits;
 	int nbits = 0;
@@ -62,7 +62,7 @@ bmap_count_internal(struct bmap * restrict b)
 }
 
 int
-bmap_count_r(struct bmap * restrict b)
+bmap_count_r(struct bmap * __restrict b)
 {
 	return bmap_count_internal(b);
 }
@@ -105,10 +105,10 @@ bmap_inter64_postcount(struct bmap *r, struct bmap *s)
 }
 
 int
-bmap_inter64_count_r(struct bmap * restrict r, struct bmap * restrict s)
+bmap_inter64_count_r(struct bmap * __restrict r, struct bmap * __restrict s)
 {
-	uint64_t * restrict d = r->bits;
-	uint64_t * restrict d2 = s->bits;
+	uint64_t * __restrict d = r->bits;
+	uint64_t * __restrict d2 = s->bits;
 	int nbits = 0;
 	int i;
 
@@ -118,10 +118,10 @@ bmap_inter64_count_r(struct bmap * restrict r, struct bmap * restrict s)
 }
 
 int
-bmap_inter64_postcount_r(struct bmap * restrict r, struct bmap * restrict s)
+bmap_inter64_postcount_r(struct bmap * __restrict r, struct bmap * __restrict s)
 {
-	uint64_t * restrict d = r->bits;
-	uint64_t * restrict d2 = s->bits;
+	uint64_t * __restrict d = r->bits;
+	uint64_t * __restrict d2 = s->bits;
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++)
@@ -149,7 +149,7 @@ bmap_inter64_avx_u_count(struct bmap *r, struct bmap *s)
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
-		__m256 v = mm256_and_si256(_mm256_loadu_si256(&d[i]), _mm256_loadu_si256(&d2[i]));
+		__m256i v = mm256_and_si256(_mm256_loadu_si256(&d[i]), _mm256_loadu_si256(&d2[i]));
 		_mm256_storeu_si256(&d[i], v);
 		__m128i c1 = _mm256_extractf128_si256(v, 0);
 		__m128i c2 = _mm256_extractf128_si256(v, 1);
@@ -170,7 +170,7 @@ bmap_inter64_avx_u_postcount(struct bmap *r, struct bmap *s)
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
-		__m256 v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		__m256i v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
 		_mm256_store_si256(&d[i], v);
 	}
 	return bmap_count(r);
@@ -185,7 +185,7 @@ bmap_inter64_avx_a_count(struct bmap *r, struct bmap *s)
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
-		__m256 v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		__m256i v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
 		_mm256_store_si256(&d[i], v);
 		__m128i c1 = _mm256_extractf128_si256(v, 0);
 		__m128i c2 = _mm256_extractf128_si256(v, 1);
@@ -206,14 +206,14 @@ bmap_inter64_avx_a_postcount(struct bmap *r, struct bmap *s)
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
-		__m256 v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		__m256i v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
 		_mm256_store_si256(&d[i], v);
 	}
 	return bmap_count(r);
 }
 
 int
-bmap_inter64_avx_a_count_r(struct bmap * restrict r, struct bmap * restrict s)
+bmap_inter64_avx_a_count_r(struct bmap * __restrict r, struct bmap * __restrict s)
 {
 	__m256i *d = r->bits;
 	__m256i *d2 = s->bits;
@@ -221,7 +221,7 @@ bmap_inter64_avx_a_count_r(struct bmap * restrict r, struct bmap * restrict s)
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
-		__m256 v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		__m256i v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
 		_mm256_store_si256(&d[i], v);
 		__m128i c1 = _mm256_extractf128_si256(v, 0);
 		__m128i c2 = _mm256_extractf128_si256(v, 1);
@@ -235,21 +235,21 @@ bmap_inter64_avx_a_count_r(struct bmap * restrict r, struct bmap * restrict s)
 }
 
 int
-bmap_inter64_avx_a_postcount_r(struct bmap * restrict r, struct bmap * restrict s)
+bmap_inter64_avx_a_postcount_r(struct bmap * __restrict r, struct bmap * __restrict s)
 {
 	__m256i *d = r->bits;
 	__m256i *d2 = s->bits;
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
-		__m256 v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		__m256i v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
 		_mm256_store_si256(&d[i], v);
 	}
 	return bmap_count(r);
 }
 
 int
-bmap_inter64_avx_a_postavxcount_r(struct bmap * restrict r, struct bmap * restrict s)
+bmap_inter64_avx_a_postavxcount_r(struct bmap * __restrict r, struct bmap * __restrict s)
 {
 	__m256i *d = r->bits;
 	__m256i *d2 = s->bits;
@@ -257,11 +257,11 @@ bmap_inter64_avx_a_postavxcount_r(struct bmap * restrict r, struct bmap * restri
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
-		__m256 v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		__m256i v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
 		_mm256_store_si256(&d[i], v);
 	}
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
-		__m256 v = _mm256_load_si256(&d[i]);
+		__m256i v = _mm256_load_si256(&d[i]);
 		__m128i c1 = _mm256_extractf128_si256(v, 0);
 		__m128i c2 = _mm256_extractf128_si256(v, 1);
 		nbits +=
