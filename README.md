@@ -311,7 +311,7 @@ After carefully reading the code I realized this is all a lie anyway. clang does
 
 ## Store operation order. `bmap_inter64_avx_u_count_latestore` and `bmap_inter64_avx_u_count_laterstore`
 
-It doesn't really matter when the store operation is done. But I suspect the compiler doesn't know this since the 
+It doesn't really matter when the store operation is done. But I suspect the compiler doesn't know this.
 
     x statdir/inter64_avx_u_count
     + statdir/inter64_avx_u_count_latestore
