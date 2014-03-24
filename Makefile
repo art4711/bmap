@@ -6,6 +6,9 @@ STOPWATCHPATH=../timing
 SRCS.linux=$(STOPWATCHPATH)/stopwatch_linux.c
 SRCS.darwin=$(STOPWATCHPATH)/stopwatch_mach.c
 
+LIBS.linux=-lrt
+LIBS.darwin=
+
 SRCS=$(SRCS.$(OSNAME)) bmap.c bmap_test.c
 
 OBJS=$(SRCS:.c=.o)
@@ -23,4 +26,4 @@ clean::
 $(OBJS): bmap.h
 
 bmap: $(OBJS)
-	cc -Wall -Werror -o bmap $(OBJS) -lrt
+	cc -Wall -Werror -o bmap $(OBJS) $(LIBS.$(OSNAME))
