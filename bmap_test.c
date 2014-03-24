@@ -17,6 +17,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <fcntl.h>
+#include <err.h>
+#include <limits.h>
 
 #include <stopwatch.h>
 
@@ -56,8 +59,14 @@ main(int argc, char **argv)
 	int nrep = 80;
 	struct bmap *bmaps[nbmaps];
 	int expect[nbmaps];
+	const char *statdir = NULL;
 	int rep;
 	int i,t;
+
+	/* If called with an argument we'll try to generate a set of stats data we can use with ministat. */
+	if (argc > 1) {
+		statdir = argv[1];
+	}
 
 	stopwatch_reset(&sw);
 	stopwatch_start(&sw);
@@ -72,18 +81,35 @@ main(int argc, char **argv)
 	}
 
 	for (t = 0; t < sizeof(tests) / sizeof(tests[0]); t++) {
-		stopwatch_reset(&sw);
-		stopwatch_start(&sw);
-		for (rep = 0; rep < nrep; rep++) {
-			for (i = 0; i < nbmaps; i+= 2) {
-				int ret = (*tests[t].t)(bmaps[i], bmaps[i + 1]);
-				if (ret != expect[i]) {
-					printf("test '%s' returns %d != %d\n", tests[t].n, ret, expect[i]);
+		FILE *statfile;
+		int toprep;
+
+		if (statdir) {
+			char fname[PATH_MAX];
+
+			snprintf(fname, sizeof(fname), "%s/%s", statdir, tests[t].n);
+			if ((statfile = fopen(fname, "w+")) == NULL)
+				err(1, "fopen(%s)", fname);
+		}
+
+		for (toprep = 0; toprep < (statdir ? 100 : 1); toprep++) {
+			stopwatch_reset(&sw);
+			stopwatch_start(&sw);
+			for (rep = 0; rep < nrep; rep++) {
+				for (i = 0; i < nbmaps; i+= 2) {
+					int ret = (*tests[t].t)(bmaps[i], bmaps[i + 1]);
+					if (ret != expect[i]) {
+						printf("test '%s' returns %d != %d\n", tests[t].n, ret, expect[i]);
+					}
 				}
 			}
+			stopwatch_stop(&sw);
+			printf("%s: %f\n", tests[t].n, stopwatch_to_ns(&sw) / 1000000000.0);
+			if (statdir)
+				fprintf(statfile, "%f\n", stopwatch_to_ns(&sw) / 1000000000.0);
 		}
-		stopwatch_stop(&sw);
-		printf("%s: %f\n", tests[t].n, stopwatch_to_ns(&sw) / 1000000000.0);
+		if (statdir)
+			fclose(statfile);
 	}
 
 	return 0;
