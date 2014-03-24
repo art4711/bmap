@@ -136,9 +136,11 @@ bmap_inter64_postcount_r(struct bmap * __restrict r, struct bmap * __restrict s)
  * The lack of this instruction is hilarious.
  *
  * Why are there separate instructions that do the exact same things for single and double precision, but not
- * for ints where bit operations actually make sense. It's all casts anyway.
+ * for ints where bit operations actually make sense. It's all casts anyway. Or is it? Two versions to test if
+ * double vs. single precision makes sense.
  */
 #define mm256_and_si256(v1, v2) _mm256_castpd_si256(_mm256_and_pd(_mm256_castsi256_pd(v1), _mm256_castsi256_pd(v2)))
+#define mm256_and_si256_ps(v1, v2) _mm256_castps_si256(_mm256_and_ps(_mm256_castsi256_ps(v1), _mm256_castsi256_ps(v2)))
 
 int
 bmap_inter64_avx_u_count(struct bmap *r, struct bmap *s)
@@ -170,8 +172,8 @@ bmap_inter64_avx_u_postcount(struct bmap *r, struct bmap *s)
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
-		__m256i v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
-		_mm256_store_si256(&d[i], v);
+		__m256i v = mm256_and_si256(_mm256_loadu_si256(&d[i]), _mm256_loadu_si256(&d2[i]));
+		_mm256_storeu_si256(&d[i], v);
 	}
 	return bmap_count(r);
 }
@@ -273,5 +275,137 @@ bmap_inter64_avx_a_postavxcount_r(struct bmap * __restrict r, struct bmap * __re
 	return nbits;
 }
 
+int
+bmap_inter64_avx_u_count_ps(struct bmap *r, struct bmap *s)
+{
+	__m256i *d = r->bits;
+	__m256i *d2 = s->bits;
+	int nbits = 0;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
+		__m256i v = mm256_and_si256_ps(_mm256_loadu_si256(&d[i]), _mm256_loadu_si256(&d2[i]));
+		_mm256_storeu_si256(&d[i], v);
+		__m128i c1 = _mm256_extractf128_si256(v, 0);
+		__m128i c2 = _mm256_extractf128_si256(v, 1);
+		nbits +=
+			__builtin_popcountll(_mm_extract_epi64(c1, 0)) +
+			__builtin_popcountll(_mm_extract_epi64(c2, 0)) +
+			__builtin_popcountll(_mm_extract_epi64(c1, 1)) +
+			__builtin_popcountll(_mm_extract_epi64(c2, 1));
+	}
+	return nbits;
+}
+
+int
+bmap_inter64_avx_u_postcount_ps(struct bmap *r, struct bmap *s)
+{
+	__m256i *d = r->bits;
+	__m256i *d2 = s->bits;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
+		__m256i v = mm256_and_si256_ps(_mm256_loadu_si256(&d[i]), _mm256_loadu_si256(&d2[i]));
+		_mm256_storeu_si256(&d[i], v);
+	}
+	return bmap_count(r);
+}
+
+int
+bmap_inter64_avx_a_count_ps(struct bmap *r, struct bmap *s)
+{
+	__m256i *d = r->bits;
+	__m256i *d2 = s->bits;
+	int nbits = 0;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
+		__m256i v = mm256_and_si256_ps(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		_mm256_store_si256(&d[i], v);
+		__m128i c1 = _mm256_extractf128_si256(v, 0);
+		__m128i c2 = _mm256_extractf128_si256(v, 1);
+		nbits +=
+			__builtin_popcountll(_mm_extract_epi64(c1, 0)) +
+			__builtin_popcountll(_mm_extract_epi64(c2, 0)) +
+			__builtin_popcountll(_mm_extract_epi64(c1, 1)) +
+			__builtin_popcountll(_mm_extract_epi64(c2, 1));
+	}
+	return nbits;
+}
+
+int
+bmap_inter64_avx_a_postcount_ps(struct bmap *r, struct bmap *s)
+{
+	__m256i *d = r->bits;
+	__m256i *d2 = s->bits;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
+		__m256i v = mm256_and_si256_ps(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		_mm256_store_si256(&d[i], v);
+	}
+	return bmap_count(r);
+}
+
+int
+bmap_inter64_avx_a_count_r_ps(struct bmap * __restrict r, struct bmap * __restrict s)
+{
+	__m256i *d = r->bits;
+	__m256i *d2 = s->bits;
+	int nbits = 0;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
+		__m256i v = mm256_and_si256_ps(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		_mm256_store_si256(&d[i], v);
+		__m128i c1 = _mm256_extractf128_si256(v, 0);
+		__m128i c2 = _mm256_extractf128_si256(v, 1);
+		nbits +=
+			__builtin_popcountll(_mm_extract_epi64(c1, 0)) +
+			__builtin_popcountll(_mm_extract_epi64(c2, 0)) +
+			__builtin_popcountll(_mm_extract_epi64(c1, 1)) +
+			__builtin_popcountll(_mm_extract_epi64(c2, 1));
+	}
+	return nbits;
+}
+
+int
+bmap_inter64_avx_a_postcount_r_ps(struct bmap * __restrict r, struct bmap * __restrict s)
+{
+	__m256i *d = r->bits;
+	__m256i *d2 = s->bits;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
+		__m256i v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		_mm256_store_si256(&d[i], v);
+	}
+	return bmap_count(r);
+}
+
+int
+bmap_inter64_avx_a_postavxcount_r_ps(struct bmap * __restrict r, struct bmap * __restrict s)
+{
+	__m256i *d = r->bits;
+	__m256i *d2 = s->bits;
+	int nbits = 0;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
+		__m256i v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		_mm256_store_si256(&d[i], v);
+	}
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
+		__m256i v = _mm256_load_si256(&d[i]);
+		__m128i c1 = _mm256_extractf128_si256(v, 0);
+		__m128i c2 = _mm256_extractf128_si256(v, 1);
+		nbits +=
+			__builtin_popcountll(_mm_extract_epi64(c1, 0)) +
+			__builtin_popcountll(_mm_extract_epi64(c2, 0)) +
+			__builtin_popcountll(_mm_extract_epi64(c1, 1)) +
+			__builtin_popcountll(_mm_extract_epi64(c2, 1));
+	}
+	return nbits;
+}
 
 #endif

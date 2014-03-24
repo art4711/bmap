@@ -38,6 +38,13 @@ struct {
 	{ bmap_inter64_avx_a_count_r, "inter64_avx_a_count_r" },
 	{ bmap_inter64_avx_a_postcount_r, "inter64_avx_a_postcount_r" },
 	{ bmap_inter64_avx_a_postavxcount_r, "inter64_avx_a_postavxcount_r" },
+	{ bmap_inter64_avx_u_count_ps, "inter64_avx_u_count_ps" },
+	{ bmap_inter64_avx_u_postcount_ps, "inter64_avx_u_postcount_ps" },
+	{ bmap_inter64_avx_a_count_ps, "inter64_avx_a_count_ps" },
+	{ bmap_inter64_avx_a_postcount_ps, "inter64_avx_a_postcount_ps" },
+	{ bmap_inter64_avx_a_count_r_ps, "inter64_avx_a_count_r_ps" },
+	{ bmap_inter64_avx_a_postcount_r_ps, "inter64_avx_a_postcount_r_ps" },
+	{ bmap_inter64_avx_a_postavxcount_r_ps, "inter64_avx_a_postavxcount_r_ps" },
 #endif
 };
 
