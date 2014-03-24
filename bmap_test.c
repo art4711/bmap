@@ -35,6 +35,8 @@ struct {
 	{ bmap_inter64_avx_u_postcount, "inter64_avx_u_postcount" },
 	{ bmap_inter64_avx_a_count, "inter64_avx_a_count" },
 	{ bmap_inter64_avx_a_postcount, "inter64_avx_a_postcount" },
+	{ bmap_inter64_avx_a_count_r, "inter64_avx_a_count_r" },
+	{ bmap_inter64_avx_a_postcount_r, "inter64_avx_a_postcount_r" },
 #endif
 };
 

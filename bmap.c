@@ -49,28 +49,34 @@ bmap_alloc_rnd(void)
 	return b;
 }
 
-int
-bmap_count_r(struct bmap *b)
+static inline int
+bmap_count_internal(struct bmap * restrict b)
 {
 	uint64_t *d = b->bits;
-	int ndocs = 0;
+	int nbits = 0;
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++)
-		ndocs += __builtin_popcountll(d[i]);
-	return ndocs;
+		nbits += __builtin_popcountll(d[i]);
+	return nbits;
+}
+
+int
+bmap_count_r(struct bmap * restrict b)
+{
+	return bmap_count_internal(b);
 }
 
 int
 bmap_count(struct bmap *b)
 {
 	uint64_t *d = b->bits;
-	int ndocs = 0;
+	int nbits = 0;
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++)
-		ndocs += __builtin_popcountll(d[i]);
-	return ndocs;
+		nbits += __builtin_popcountll(d[i]);
+	return nbits;
 }
 
 int
@@ -78,12 +84,12 @@ bmap_inter64_count(struct bmap *r, struct bmap *s)
 {
 	uint64_t *d = r->bits;
 	uint64_t *d2 = s->bits;
-	int ndocs = 0;
+	int nbits = 0;
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++)
-		ndocs += __builtin_popcountll(d[i] &= d2[i]);
-	return ndocs;
+		nbits += __builtin_popcountll(d[i] &= d2[i]);
+	return nbits;
 }
 
 int
@@ -103,12 +109,12 @@ bmap_inter64_count_r(struct bmap * restrict r, struct bmap * restrict s)
 {
 	uint64_t *d = r->bits;
 	uint64_t *d2 = s->bits;
-	int ndocs = 0;
+	int nbits = 0;
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++)
-		ndocs += __builtin_popcountll(d[i] &= d2[i]);
-	return ndocs;
+		nbits += __builtin_popcountll(d[i] &= d2[i]);
+	return nbits;
 }
 
 int
@@ -120,7 +126,7 @@ bmap_inter64_postcount_r(struct bmap * restrict r, struct bmap * restrict s)
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++)
 		d[i] &= d2[i];
-	return bmap_count(r);
+	return bmap_count_internal(r);
 }
 
 #ifdef __AVX__
@@ -139,7 +145,7 @@ bmap_inter64_avx_u_count(struct bmap *r, struct bmap *s)
 {
 	__m256i *d = r->bits;
 	__m256i *d2 = s->bits;
-	int ndocs = 0;
+	int nbits = 0;
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
@@ -147,13 +153,13 @@ bmap_inter64_avx_u_count(struct bmap *r, struct bmap *s)
 		_mm256_storeu_si256(&d[i], v);
 		__m128i c1 = _mm256_extractf128_si256(v, 0);
 		__m128i c2 = _mm256_extractf128_si256(v, 1);
-		ndocs +=
+		nbits +=
 			__builtin_popcountll(_mm_extract_epi64(c1, 0)) +
 			__builtin_popcountll(_mm_extract_epi64(c2, 0)) +
 			__builtin_popcountll(_mm_extract_epi64(c1, 1)) +
 			__builtin_popcountll(_mm_extract_epi64(c2, 1));
 	}
-	return ndocs;
+	return nbits;
 }
 
 int
@@ -175,7 +181,7 @@ bmap_inter64_avx_a_count(struct bmap *r, struct bmap *s)
 {
 	__m256i *d = r->bits;
 	__m256i *d2 = s->bits;
-	int ndocs = 0;
+	int nbits = 0;
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
@@ -183,17 +189,53 @@ bmap_inter64_avx_a_count(struct bmap *r, struct bmap *s)
 		_mm256_store_si256(&d[i], v);
 		__m128i c1 = _mm256_extractf128_si256(v, 0);
 		__m128i c2 = _mm256_extractf128_si256(v, 1);
-		ndocs +=
+		nbits +=
 			__builtin_popcountll(_mm_extract_epi64(c1, 0)) +
 			__builtin_popcountll(_mm_extract_epi64(c2, 0)) +
 			__builtin_popcountll(_mm_extract_epi64(c1, 1)) +
 			__builtin_popcountll(_mm_extract_epi64(c2, 1));
 	}
-	return ndocs;
+	return nbits;
 }
 
 int
 bmap_inter64_avx_a_postcount(struct bmap *r, struct bmap *s)
+{
+	__m256i *d = r->bits;
+	__m256i *d2 = s->bits;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
+		__m256 v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		_mm256_store_si256(&d[i], v);
+	}
+	return bmap_count(r);
+}
+
+int
+bmap_inter64_avx_a_count_r(struct bmap * restrict r, struct bmap * restrict s)
+{
+	__m256i *d = r->bits;
+	__m256i *d2 = s->bits;
+	int nbits = 0;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
+		__m256 v = mm256_and_si256(_mm256_load_si256(&d[i]), _mm256_load_si256(&d2[i]));
+		_mm256_store_si256(&d[i], v);
+		__m128i c1 = _mm256_extractf128_si256(v, 0);
+		__m128i c2 = _mm256_extractf128_si256(v, 1);
+		nbits +=
+			__builtin_popcountll(_mm_extract_epi64(c1, 0)) +
+			__builtin_popcountll(_mm_extract_epi64(c2, 0)) +
+			__builtin_popcountll(_mm_extract_epi64(c1, 1)) +
+			__builtin_popcountll(_mm_extract_epi64(c2, 1));
+	}
+	return nbits;
+}
+
+int
+bmap_inter64_avx_a_postcount_r(struct bmap * restrict r, struct bmap * restrict s)
 {
 	__m256i *d = r->bits;
 	__m256i *d2 = s->bits;
