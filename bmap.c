@@ -50,6 +50,18 @@ bmap_alloc_rnd(void)
 }
 
 int
+bmap_count_r(struct bmap *b)
+{
+	uint64_t *d = b->bits;
+	int ndocs = 0;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++)
+		ndocs += __builtin_popcountll(d[i]);
+	return ndocs;
+}
+
+int
 bmap_count(struct bmap *b)
 {
 	uint64_t *d = b->bits;
@@ -79,6 +91,31 @@ bmap_inter64_postcount(struct bmap *r, struct bmap *s)
 {
 	uint64_t *d = r->bits;
 	uint64_t *d2 = s->bits;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++)
+		d[i] &= d2[i];
+	return bmap_count(r);
+}
+
+int
+bmap_inter64_count_r(struct bmap * restrict r, struct bmap * restrict s)
+{
+	uint64_t *d = r->bits;
+	uint64_t *d2 = s->bits;
+	int ndocs = 0;
+	int i;
+
+	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++)
+		ndocs += __builtin_popcountll(d[i] &= d2[i]);
+	return ndocs;
+}
+
+int
+bmap_inter64_postcount_r(struct bmap * restrict r, struct bmap * restrict s)
+{
+	uint64_t * restrict d = r->bits;
+	uint64_t * restrict d2 = s->bits;
 	int i;
 
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++)

@@ -28,6 +28,8 @@ struct {
 } tests[] = {
 	{ bmap_inter64_count, "inter64_count" },
 	{ bmap_inter64_postcount, "inter64_postcount" },
+	{ bmap_inter64_count_r, "inter64_count_r" },
+	{ bmap_inter64_postcount_r, "inter64_postcount_r" },
 #ifdef __AVX__
 	{ bmap_inter64_avx_u_count, "inter64_avx_u_count" },
 	{ bmap_inter64_avx_u_postcount, "inter64_avx_u_postcount" },

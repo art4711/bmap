@@ -23,6 +23,8 @@ struct bmap *bmap_alloc_rnd(void);
 int bmap_count(struct bmap *b);
 int bmap_inter64_count(struct bmap *r, struct bmap *s);
 int bmap_inter64_postcount(struct bmap *r, struct bmap *s);
+int bmap_inter64_count_r(struct bmap * restrict r, struct bmap * restrict s);
+int bmap_inter64_postcount_r(struct bmap * restrict r, struct bmap * restrict s);
 #ifdef __AVX__
 int bmap_inter64_avx_u_count(struct bmap *r, struct bmap *s);
 int bmap_inter64_avx_u_postcount(struct bmap *r, struct bmap *s);
