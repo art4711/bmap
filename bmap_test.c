@@ -22,6 +22,20 @@
 
 #include "bmap.h"
 
+struct {
+	int (*t)(struct bmap *r, struct bmap *);
+	const char *n;
+} tests[] = {
+	{ bmap_inter64_count, "inter64_count" },
+	{ bmap_inter64_postcount, "inter64_postcount" },
+#ifdef __AVX__
+	{ bmap_inter64_avx_u_count, "inter64_avx_u_count" },
+	{ bmap_inter64_avx_u_postcount, "inter64_avx_u_postcount" },
+	{ bmap_inter64_avx_a_count, "inter64_avx_a_count" },
+	{ bmap_inter64_avx_a_postcount, "inter64_avx_a_postcount" },
+#endif
+};
+
 int
 main(int argc, char **argv)
 {
@@ -30,7 +44,7 @@ main(int argc, char **argv)
 	struct bmap *bmaps[nbmaps];
 	int nrep = 40;
 	int rep;
-	int i;
+	int i,t;
 
 	stopwatch_reset(&sw);
 	stopwatch_start(&sw);
@@ -40,20 +54,15 @@ main(int argc, char **argv)
 	stopwatch_stop(&sw);
 	printf("alloc: %f\n", stopwatch_to_ns(&sw) / 1000000000.0);
 
-	stopwatch_reset(&sw);
-	stopwatch_start(&sw);
-	for (rep = 0; rep < nrep; rep++)
-		for (i = 0; i < nbmaps; i+= 2)
-			bmap_inter64_count(bmaps[i], bmaps[i + 1]);
-	stopwatch_stop(&sw);
-	printf("inter64_count: %f\n", stopwatch_to_ns(&sw) / 1000000000.0);
-
-	stopwatch_reset(&sw);
-	stopwatch_start(&sw);
-	for (i = 0; i < nbmaps; i+= 2)
-		bmap_inter64_postcount(bmaps[i], bmaps[i + 1]);
-	stopwatch_stop(&sw);
-	printf("inter64_postcount: %f\n", stopwatch_to_ns(&sw) / 1000000000.0);
+	for (t = 0; t < sizeof(tests) / sizeof(tests[0]); t++) {
+		stopwatch_reset(&sw);
+		stopwatch_start(&sw);
+		for (rep = 0; rep < nrep; rep++)
+			for (i = 0; i < nbmaps; i+= 2)
+				(*tests[t].t)(bmaps[i], bmaps[i + 1]);
+		stopwatch_stop(&sw);
+		printf("%s: %f\n", tests[t].n, stopwatch_to_ns(&sw) / 1000000000.0);
+	}
 
 	return 0;
 }

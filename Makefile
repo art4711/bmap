@@ -6,7 +6,7 @@ SRCS+=bmap.c bmap_test.c
 
 OBJS=$(SRCS:.c=.o)
 
-CFLAGS=-I$(STOPWATCHPATH) -O2 -msse4.2 -mpopcnt
+CFLAGS=-I$(STOPWATCHPATH) -O2 -msse4.2 -mpopcnt -mavx -Wall -Werror
 
 .PHONY: run clean
 
@@ -15,6 +15,8 @@ run:: bmap
 
 clean::
 	rm $(OBJS) bmap
+
+$(OBJS): bmap.h
 
 bmap: $(OBJS)
 	cc -Wall -Werror -o bmap -O2 -I$(STOPWATCHPATH) $(OBJS)
