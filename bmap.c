@@ -43,7 +43,7 @@ bmap_alloc_rnd(void)
 
 	d = b->bits;
 	for (i = 0; i < NBITS / (CHAR_BIT * sizeof(*d)); i++) {
-		*d = random();
+		d[i] = random();
 	}
 
 	return b;
